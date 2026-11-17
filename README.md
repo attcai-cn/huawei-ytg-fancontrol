@@ -1,57 +1,119 @@
 # Huawei YTG Fan Control
 
-针对 `HUAWEI YTG-XXX`（擎云 QingYun 系列，i7-1360P，BIOS 1.08）的风扇控制适配，只保留两档：**最高转速**与**恢复自动控制**。
+`HUAWEI YTG-XXX`（擎云 QingYun，i7-1360P，BIOS 1.08，单风扇）的风扇控制，只提供两档：**最高转速**与**恢复自动控制**。
 
-控制器调用固件自带的 `OemWMIfun` / `SFND` 路径，经 `\_SB.PC00.LPCB.HWEC.ECCD` 访问 EC；不写未知 EC RAM 地址，不修改或刷写 BIOS，也不需要内核驱动。
+---
 
-本机为**单风扇**：只写 Fan 0，Fan 1 转速计恒返回 `0xFFFF`。物理上限约 5280 RPM，请求 ≥5300 RPM 全部饱和在此值。完整的逆向结论见 [`reverse/REVERSE.md`](reverse/REVERSE.md)。
+## 使用教程
 
-> [!WARNING]
-> 本机控制依赖特定的机型、主板与 BIOS 版本。其他机型可能接口不同、档位不同甚至风扇数量不同。风扇控制失误可能导致过热、降频或硬件损伤；请先确认机型，并自行承担使用风险。
+### 第 1 步：下载需要的文件
 
-## 用法
+在仓库页面点 **Code → Download ZIP**，解压后即得到全部文件。也可以逐个点击文件名，在页面右上角点 **Download raw file** 单独下载。
 
-双击 `Fan-Tray.cmd`（会自动请求管理员权限），右下角出现风扇托盘图标：
+日常使用只需要下面 **2 个文件**，且必须放在**同一个文件夹**里：
 
-- 红色图标 = 最高转速，绿色 = 固件自动控制；悬停显示当前转速与温度。
-- 左键或右键点击图标打开菜单，在「最高转速」和「恢复自动控制」之间切换。
-- 「退出」会询问是否先恢复自动控制。
+| 文件 | 作用 |
+|---|---|
+| `Fan-Tray.cmd` | 启动托盘图标（日常用这个） |
+| `HuaweiFan-Tray.ps1` | 托盘程序的脚本本体，由上面那个文件调用 |
 
-也可以直接双击 `Fan-Max.cmd` / `Fan-Auto.cmd`，或在管理员 PowerShell 中调用：
+建议再带上这个兜底脚本，托盘出问题时可以用它一把恢复自动控制：
 
-```powershell
-.\HuaweiFan-Tray.ps1                    # 托盘模式
-.\HuaweiFan-Tray.ps1 -Action Max        # 无界面：最高转速
-.\HuaweiFan-Tray.ps1 -Action Auto       # 无界面：恢复自动
-.\HuaweiFan-Tray.ps1 -Action Status     # 只读状态
-.\HuaweiFan-Max.ps1                     # 最高转速（带转速观察输出）
-.\Restore-HuaweiFanVendorControl.ps1    # 恢复自动
+| 文件 | 作用 |
+|---|---|
+| `Restore-HuaweiFanVendorControl.ps1` | 单条命令把风扇交回固件，不依赖托盘 |
+
+如果不想用托盘，也可以额外下载命令行版：
+
+| 文件 | 作用 |
+|---|---|
+| `Fan-Max.cmd` + `HuaweiFan-Max.ps1` | 直接切到最高转速，窗口里显示转速变化 |
+| `Fan-Auto.cmd` | 直接恢复自动控制（调用 `Restore-HuaweiFanVendorControl.ps1`） |
+
+> 注意：`.cmd` 是靠同目录下的 `.ps1` 工作的，两个文件拆开放会报「找不到文件」。不要只下载 `.cmd`。
+
+### 第 2 步：双击 `Fan-Tray.cmd`
+
+1. 弹出 UAC 提示，点 **是**（必须管理员权限，否则写不了 EC）。
+2. 右下角出现**风扇图标**：红色＝最高转速，绿色＝自动控制。
+3. 鼠标悬停在图标上，可看到当前转速与温度。
+
+### 第 3 步：点图标切换
+
+左键或右键点击图标，弹出菜单：
+
+```
+状态：自动控制　4800 RPM　70 ℃
+────────────────
+✓ 最高转速
+  恢复自动控制
+────────────────
+  退出
 ```
 
-手动模式是持久的：退出脚本或关闭托盘后风扇仍保持最后一次目标转速，直到执行恢复、重启，或在托盘退出时选择恢复。
+- 点 **最高转速** → 风扇立刻升到物理上限（本机约 5280 RPM），图标变红。
+- 点 **恢复自动控制** → 交回固件控制，图标变绿，几秒内回落到 4600–4900 RPM。
+- 点 **退出** → 会问你是否先恢复自动控制。
 
-## 可控转速区间
+### 常见问题
 
-固件协议可表达 0–25500 RPM（16 位小端值 ÷ 100，分辨率 100 RPM），但物理有效区间要窄得多：
+| 现象 | 处理 |
+|---|---|
+| 双击后一闪而过 | 没点 UAC 的「是」，或文件没放在同一文件夹 |
+| 提示「风扇托盘已经在运行了」 | 已经启动过了，看右下角托盘，不要重复开 |
+| 图标找不到 | 可能在托盘折叠区（`^`）里，拖出来固定 |
+| 想切回自动但托盘关了 | 双击 `Fan-Auto.cmd`，或重启电脑 |
+
+**重要**：手动模式是持久的，关闭托盘窗口不会自动恢复，必须点「恢复自动控制」或重启。
+
+---
+
+## 为什么只有两档
+
+固件协议能表达 0–25500 RPM，但物理上真正有用的区间很窄：
 
 | 层面 | 区间 | 说明 |
 |---|---|---|
-| 物理可控 | 约 3200–5280 RPM | 线性跟随段，请求与实际约 1:1 |
-| 饱和上限 | ≈5280 RPM | 请求 ≥5300 无进一步变化 |
+| 物理可控 | 约 3200–5280 RPM | 请求与实际约 1:1 |
+| 饱和上限 | ≈5280 RPM | 请求 ≥5300 无任何变化 |
 | 原厂自动 | 4620–4920 RPM | 退出手动模式后回到此区间 |
 
-因此真正有用的只有两头：静音约 3200 RPM，全速 5280 RPM。「最高转速」档请求 12000 只是为了触到物理上限。
+所以只有两头有意义：**约 3200 RPM 的静音**和 **5280 RPM 的全速**。「最高转速」档请求 12000，只是为了确保触到上限。
 
-## 逆向探测工具
+## 工作原理
 
-`reverse/HwFan-Probe.ps1` 提供了只读探测和写入校准，写入需管理员权限并显式传 `-Apply`：
+调用链（ACPI 反编译确认）：
+
+```
+OemWMIfun → WMAA(MFID, SFID) → SFND → ECCM → \_SB.PC00.LPCB.HWEC.ECCD → EC(0x62/0x66)
+```
+
+| 操作 | WMI 命令 |
+|---|---|
+| 进入手动模式 | `02 11 00 01 00 00` |
+| 设置转速 | `02 11 <fan> 01 <rpm lo> <rpm hi>` |
+| 恢复自动 | `02 11 00 00 00 00` |
+| 读转速 | `02 08 <fan>` |
+| 读温度 | `02 02 <sensor>` |
+
+固件把 16 位转速值除以 100 再下发 EC，所以分辨率 100 RPM。本机只有 Fan 0，Fan 1 转速计恒返回 `0xFFFF`。
+
+不写未知 EC RAM、不刷 BIOS、不改电源策略。完整逆向过程（ACPI 导出、`iasl` 反编译、逐字节解读、传感器实测）见 [`reverse/REVERSE.md`](reverse/REVERSE.md)。
+
+## 进阶：脚本与探测
+
+需要无界面调用或自己复现逆向时：
 
 ```powershell
+.\HuaweiFan-Tray.ps1 -Action Max        # 最高转速
+.\HuaweiFan-Tray.ps1 -Action Auto       # 恢复自动
+.\HuaweiFan-Tray.ps1 -Action Status     # 只读状态
+
 .\reverse\HwFan-Probe.ps1 -Action Status
-.\reverse\HwFan-Probe.ps1 -Action Monitor -SampleSeconds 1
 .\reverse\HwFan-Probe.ps1 -Action SetRpm -Rpm 9000 -HoldSeconds 20 -Apply
-.\reverse\HwFan-Probe.ps1 -Action Calibrate -Apply
 ```
+
+`reverse/HwFan-Probe.ps1` 的写入动作需管理员权限并显式传 `-Apply`，内置 88 °C 紧急退出。
 
 ## 要求
 
@@ -59,24 +121,17 @@
 - 管理员权限
 - `root\wmi:OemWMIMethod` 中存在实例 `ACPI\PNP0C14\HWMI_0`
 
-## 安全机制
-
-- 只写固件已声明的 EC 命令，不直接写 EC RAM，不刷写 BIOS，不改电源策略。
-- 本机只有一个风扇，退出测试模式即恢复原厂自动。
-- 探测脚本内置 88 °C 紧急退出。
-- 若控制器被强杀，EC 会停在最后一次目标转速；重启后 EC 复位回到原厂控制。
+> [!WARNING]
+> 只在 `HUAWEI YTG-XXX`（i7-1360P / BIOS 1.08）上验证。其他机型的接口、档位、风扇数量都可能不同，直接套用有风险。风扇控制失误可能导致过热、降频或硬件损伤，请自行承担。
 
 ## 数据与隐私
 
-仓库不包含 BIOS 镜像、ACPI 提取物、设备序列号或电源设置快照。逆向过程中导出的 ACPI 表保存在本地 `reverse/acpi` 与 `reverse/acpidump`，已通过 `.gitignore` 排除；WorkBuddy 私有数据目录 `.workbuddy` 同样被排除。
+仓库不含 BIOS 镜像、ACPI 提取物或设备序列号。逆向时导出的 ACPI 表保存在本地 `reverse/acpi`、`reverse/acpidump`，已被 `.gitignore` 排除。
 
-托盘脚本里的 .ps1 以 UTF-8 BOM 保存：PowerShell 5.1 对无 BOM 的 UTF-8 会按 GBK 解析，导致含中文的脚本出现语法错误。
+`HuaweiFan-Tray.ps1` 以 UTF-8 BOM 保存——PowerShell 5.1 对无 BOM 的中文脚本会按 GBK 解析并报语法错误，修改时请保持编码。
 
 ## 致谢
 
-本项目的接口逆向思路与部分通用组件参考了 [limsaiful42-eng/huawei-matebook-fancontrol](https://github.com/limsaiful42-eng/huawei-matebook-fancontrol)（Huawei MateBook 14 2024 双风扇控制项目），在此致谢。
+接口逆向思路参考了 [limsaiful42-eng/huawei-matebook-fancontrol](https://github.com/limsaiful42-eng/huawei-matebook-fancontrol)（Huawei MateBook 14 2024 双风扇控制项目），在此致谢。
 
-本仓库针对本机 `HUAWEI YTG-XXX` 做了单风扇两档适配与重新整理，提交历史独立，不代表上游项目。仓库中仍保留了若干上游通用文件（自动曲线控制器、watchdog、图形界面启动器、曲线配置等），这些面向 **MateBook 14 2024（FlemingH）/ BIOS 1.22 双风扇机型**，本机 YTG-XXX 未启用。
-
-上游项目的验收记录见 [`VALIDATION.md`](VALIDATION.md) 与 [`CHANGELOG.md`](CHANGELOG.md)，仅供对照参考。
-
+本仓库针对本机 YTG-XXX 重新实现并整理，提交历史独立，不代表上游项目；仓库只保留本机实际使用所需的文件。
