@@ -1,6 +1,6 @@
 @echo off
 rem Double-click launcher: hand the fan back to firmware (automatic) control.
-rem Self-elevates, then runs Restore-HuaweiFanVendorControl.ps1.
+rem Self-elevates, then runs the tray script in headless auto mode.
 
 net session >nul 2>&1
 if %errorlevel% neq 0 (
@@ -8,4 +8,4 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -NoExit -File "%~dp0Restore-HuaweiFanVendorControl.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -NoExit -File "%~dp0HuaweiFan-Tray.ps1" -Action Auto

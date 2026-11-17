@@ -17,18 +17,12 @@
 | `Fan-Tray.cmd` | 启动托盘图标（日常用这个） |
 | `HuaweiFan-Tray.ps1` | 托盘程序的脚本本体，由上面那个文件调用 |
 
-建议再带上这个兜底脚本，托盘出问题时可以用它一把恢复自动控制：
-
-| 文件 | 作用 |
-|---|---|
-| `Restore-HuaweiFanVendorControl.ps1` | 单条命令把风扇交回固件，不依赖托盘 |
-
 如果不想用托盘，也可以额外下载命令行版：
 
 | 文件 | 作用 |
 |---|---|
 | `Fan-Max.cmd` + `HuaweiFan-Max.ps1` | 直接切到最高转速，窗口里显示转速变化 |
-| `Fan-Auto.cmd` | 直接恢复自动控制（调用 `Restore-HuaweiFanVendorControl.ps1`） |
+| `Fan-Auto.cmd` | 直接恢复自动控制，不经过托盘 |
 
 > 注意：`.cmd` 是靠同目录下的 `.ps1` 工作的，两个文件拆开放会报「找不到文件」。不要只下载 `.cmd`。
 
@@ -134,4 +128,4 @@ OemWMIfun → WMAA(MFID, SFID) → SFND → ECCM → \_SB.PC00.LPCB.HWEC.ECCD �
 
 接口逆向思路参考了 [limsaiful42-eng/huawei-matebook-fancontrol](https://github.com/limsaiful42-eng/huawei-matebook-fancontrol)（Huawei MateBook 14 2024 双风扇控制项目），在此致谢。
 
-本仓库针对本机 YTG-XXX 重新实现并整理，提交历史独立，不代表上游项目；仓库只保留本机实际使用所需的文件。
+本仓库的代码针对本机 `HUAWEI YTG-XXX` 重新实现，提交历史独立，不代表上游项目；上游的双风扇控制器、watchdog、图形界面与曲线配置均未包含。

@@ -4,7 +4,7 @@
     HuaweiFan-Max.ps1 - put the fan into manual test mode at full speed.
 
     This is the "high" gear. To go back to firmware control run
-    Restore-HuaweiFanVendorControl.ps1 (the "auto" gear).
+    Fan-Auto.cmd (or HuaweiFan-Tray.ps1 -Action Auto), the "auto" gear.
 
     Transport: root\wmi:OemWMIMethod @ ACPI\PNP0C14\HWMI_0, method OemWMIfun.
 
@@ -97,4 +97,4 @@ if ($SettleSeconds -gt 0) {
 }
 
 "Fan now    : {0} RPM" -f (Get-TachRpm)
-'Run Restore-HuaweiFanVendorControl.ps1 to hand the fan back to the firmware.'
+'Run Fan-Auto.cmd to hand the fan back to the firmware.'
