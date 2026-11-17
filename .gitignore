@@ -1,0 +1,16 @@
+runtime/
+quiet-power-snapshot.json
+Run-FinalValidation.ps1
+*.log
+*.csv
+*.tmp
+.vscode/
+dist/
+
+# 本机固件提取物：包含机型/序列号等本机信息，不随仓库发布
+reverse/acpi/
+reverse/acpidump/
+reverse/_load.py
+
+# WorkBuddy 项目私有数据与工作日志
+.workbuddy/
