@@ -1,6 +1,6 @@
 # Huawei YTG Fan Control
 
-`HUAWEI YTG-XXX`（擎云 QingYun，i7-1360P，BIOS 1.08，单风扇）的风扇控制，只提供两档：**最高转速**与**恢复自动控制**。
+`HUAWEI YTG-XXX`（擎云 G540 Gen2，i7-1360P，BIOS 1.08，单风扇）的风扇控制，只提供两档：**最高转速**与**恢复自动控制**。
 
 ---
 
