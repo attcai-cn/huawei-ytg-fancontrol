@@ -118,9 +118,7 @@ OemWMIfun → WMAA(MFID, SFID) → SFND → ECCM → \_SB.PC00.LPCB.HWEC.ECCD �
 > [!WARNING]
 > 只在 `HUAWEI YTG-XXX`（i7-1360P / BIOS 1.08）上验证。其他机型的接口、档位、风扇数量都可能不同，直接套用有风险。风扇控制失误可能导致过热、降频或硬件损伤，请自行承担。
 
-## 数据与隐私
-
-仓库不含 BIOS 镜像、ACPI 提取物或设备序列号。逆向时导出的 ACPI 表保存在本地 `reverse/acpi`、`reverse/acpidump`，已被 `.gitignore` 排除。
+## 修改
 
 `HuaweiFan-Tray.ps1` 以 UTF-8 BOM 保存——PowerShell 5.1 对无 BOM 的中文脚本会按 GBK 解析并报语法错误，修改时请保持编码。
 
